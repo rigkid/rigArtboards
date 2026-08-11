@@ -1,0 +1,34 @@
+{
+  "name": "rigArtboards",
+  "url": "https://github.com/rigkid/rigArtboards.git",
+  "ref": "main",
+  "version": "0.1.0",
+  "author": "Rigkid",
+  "license": "MIT Rigkid Contributors",
+  "description": "Shared editing surface over artboards — pan/zoom, selection gizmo, numeric transform, Pathfinder, Align. CODE ONLY.",
+  "dependencies": [
+    {
+      "name": "rigPlotComponent",
+      "url": "https://github.com/rigkid/rigPlotComponent.git",
+      "ref": "main"
+    },
+    {
+      "name": "rigVectorEditor",
+      "url": "https://github.com/rigkid/rigVectorEditor.git",
+      "ref": "main"
+    },
+    {
+      "name": "rigPlotter",
+      "url": "https://github.com/rigkid/rigPlotter.git",
+      "ref": "main"
+    },
+    {
+      "name": "rigImGui",
+      "url": "https://github.com/rigkid/rigImGui.git",
+      "ref": "main"
+    }
+  ],
+  "include_paths": [
+    "src"
+  ]
+}
