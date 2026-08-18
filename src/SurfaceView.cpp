@@ -13,7 +13,12 @@ void SurfaceView::handleWheel(ecs::CBedView& view, const glm::vec2& localPx, flo
 	const float factor = wheel > 0.f ? wheelFactor : (1.f / wheelFactor);
 	const glm::vec2 mm = view.pxToMm(localPx); // old scale — keep under cursor
 	view.scalePxPerMm = std::clamp(oldScale * factor, minScale, maxScale);
-	view.originPx = localPx - mm * view.scalePxPerMm;
+	if (view.yUp) {
+		view.originPx.x = localPx.x - mm.x * view.scalePxPerMm;
+		view.originPx.y = localPx.y + mm.y * view.scalePxPerMm;
+	} else {
+		view.originPx = localPx - mm * view.scalePxPerMm;
+	}
 }
 
 void SurfaceView::handlePan(ecs::CBedView& view, const glm::vec2& deltaPx) const {
@@ -33,10 +38,14 @@ void SurfaceView::fit(ecs::CBedView& view, const ImVec2& canvasSize, const FitRe
 	const float sx = availW / worldW;
 	const float sy = availH / worldH;
 	view.scalePxPerMm = std::clamp(std::min(sx, sy), minScale, maxScale);
-	const float usedW = worldW * view.scalePxPerMm;
-	const float usedH = worldH * view.scalePxPerMm;
-	view.originPx.x = (canvasSize.x - usedW) * 0.5f - world.minX * view.scalePxPerMm;
-	view.originPx.y = (canvasSize.y - usedH) * 0.5f - world.minY * view.scalePxPerMm;
+	const float midX = (world.minX + world.maxX) * 0.5f;
+	const float midY = (world.minY + world.maxY) * 0.5f;
+	view.originPx.x = canvasSize.x * 0.5f - midX * view.scalePxPerMm;
+	if (view.yUp) {
+		view.originPx.y = canvasSize.y * 0.5f + midY * view.scalePxPerMm;
+	} else {
+		view.originPx.y = canvasSize.y * 0.5f - midY * view.scalePxPerMm;
+	}
 }
 
 void SurfaceView::drawArtboards(ImDrawList* dl, const ImVec2& canvasPos, const ecs::CBedView& view,

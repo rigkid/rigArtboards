@@ -121,7 +121,7 @@ void drawGuides(ImDrawList* dl, const SurfaceMap& map, MEcs& ecs, uint32_t docId
 			dl->AddLine(ImVec2(x, canvasPos.y), ImVec2(x, canvasPos.y + canvasH), lineCol,
 						thickness);
 		} else {
-			const float y = canvasPos.y + map.view->originPx.y + g.position * map.view->scalePxPerMm;
+			const float y = canvasPos.y + map.view->mmToPx({0.f, g.position}).y;
 			if (y < canvasPos.y || y > canvasPos.y + canvasH) {
 				continue;
 			}
@@ -136,8 +136,7 @@ void drawGuides(ImDrawList* dl, const SurfaceMap& map, MEcs& ecs, uint32_t docId
 				canvasPos.x + map.view->originPx.x + dragPosMm * map.view->scalePxPerMm;
 			dl->AddLine(ImVec2(x, canvasPos.y), ImVec2(x, canvasPos.y + canvasH), dragCol, 1.5f);
 		} else {
-			const float y =
-				canvasPos.y + map.view->originPx.y + dragPosMm * map.view->scalePxPerMm;
+			const float y = canvasPos.y + map.view->mmToPx({0.f, dragPosMm}).y;
 			dl->AddLine(ImVec2(canvasPos.x, y), ImVec2(canvasPos.x + canvasW, y), dragCol, 1.5f);
 		}
 	}
