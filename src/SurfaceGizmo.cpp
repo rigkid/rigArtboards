@@ -1,6 +1,7 @@
 #include "SurfaceGizmo.h"
-#include "PathEditOps.h"
+
 #include <cmath>
+#include "PathEditOps.h"
 
 namespace rigkit {
 namespace artboards {

@@ -1,7 +1,8 @@
 #include "SurfaceNumeric.h"
-#include "PathEditOps.h"
+
 #include <cmath>
 #include <imgui.h>
+#include "PathEditOps.h"
 
 namespace rigkit {
 namespace artboards {

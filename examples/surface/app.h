@@ -2,6 +2,7 @@
 
 #include "core/U_core.h"
 #include "packs/rigArtboards/src/SurfaceGizmo.h"
+#include "packs/rigArtboards/src/SurfaceNumeric.h"
 #include "packs/rigArtboards/src/SurfaceView.h"
 #include "packs/rigImGui/src/IWindow.h"
 #include "packs/rigPlotComponent/src/CArtboard.h"
@@ -24,6 +25,12 @@ class SurfaceHeroApp : public rigkit::IApp {
 		rigkit::ecs::CPathEditSelection* m_sel = nullptr;
 		rigkit::artboards::SurfaceView m_surface;
 		rigkit::artboards::SurfaceGizmo m_gizmo;
+		rigkit::artboards::SurfaceNumeric m_numeric;
+		rigkit::ecs::CPaths m_snap;
+		bool m_haveSnap = false;
+		bool m_marquee = false;
+		glm::vec2 m_marqueeA{0.f};
+		glm::vec2 m_marqueeB{0.f};
 		float m_fitW = 0.f;
 		float m_fitH = 0.f;
 	};

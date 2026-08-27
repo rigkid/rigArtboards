@@ -4,7 +4,7 @@
 
 Shared editing surface for RigKit editors that work in millimetre space.
 
-**Artboard** = a named rect (`CArtboard` in **rigPlotComponent**). This pack draws and edits those boards: pan/zoom under the cursor, selection gizmo, numeric transform fields.
+**Artboard** = a named rect (`CArtboard` in **rigPlotComponent**). This pack draws and edits those boards: pan/zoom under the cursor, click/marquee select, selection gizmo, numeric transform fields.
 
 ## Dependencies
 

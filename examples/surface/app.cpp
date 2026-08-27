@@ -1,57 +1,33 @@
-﻿#include "app.h"
+#include "app.h"
+
+#include "core/pack/MPack.h"
+#include "core/RigKitEngine.h"
+#include "packs/rigArtboards/src/PathTools.h"
+#include "packs/rigArtboards/src/rigArtboards.h"
+#include "packs/rigArtboards/src/SelectionBounds.h"
+#include "packs/rigArtboards/src/SurfaceChrome.h"
+#include "packs/rigArtboards/src/SurfaceSeam.h"
+#include "packs/rigComponent/src/rigComponent.h"
+#include "packs/rigImGui/src/Mui.h"
+#include "packs/rigImGui/src/MWindow.h"
+#include "packs/rigImGui/src/rigImGui.h"
+#include "packs/rigImGui/src/UiDpi.h"
+#include "packs/rigPlotComponent/src/PathFlatten.h"
+#include "packs/rigPlotComponent/src/rigPlotComponent.h"
+#include "packs/rigSystems/src/rigSystems.h"
+#include "packs/rigVectorEditor/src/PathEditOps.h"
+#include "packs/rigVectorEditor/src/rigVectorEditor.h"
+#include "imgui_internal.h"
 
 #include <algorithm>
 #include <cmath>
 #include <spdlog/spdlog.h>
 #include <vector>
 
-#include "core/RigKitEngine.h"
-#include "core/pack/MPack.h"
-#include "imgui_internal.h"
-#include "packs/rigArtboards/src/SelectionBounds.h"
-#include "packs/rigArtboards/src/rigArtboards.h"
-#include "packs/rigComponent/src/rigComponent.h"
-#include "packs/rigImGui/src/MWindow.h"
-#include "packs/rigImGui/src/Mui.h"
-#include "packs/rigImGui/src/UiDpi.h"
-#include "packs/rigImGui/src/rigImGui.h"
-#include "packs/rigPlotComponent/src/PathBounds.h"
-#include "packs/rigPlotComponent/src/PathFlatten.h"
-#include "packs/rigPlotComponent/src/rigPlotComponent.h"
-#include "packs/rigSystems/src/rigSystems.h"
-#include "packs/rigVectorEditor/src/rigVectorEditor.h"
-
 namespace {
 
-/** @brief Union mm bounds of selected paths in a single-layer bag (hero has no ECS layers). */
-rigkit::artboards::SelBounds selectionBoundsOfBag(const rigkit::ecs::CPaths& bag,
-												   const rigkit::ecs::CPathEditSelection& sel) {
-	rigkit::artboards::SelBounds out;
-	bool have = false;
-	for (const auto& ref : sel.selectedRefs()) {
-		if (ref.layerIndex != 0 || ref.pathIndex < 0 ||
-			ref.pathIndex >= static_cast<int>(bag.paths.size())) {
-			continue;
-		}
-		const auto pb = rigkit::plot::boundsOfPath(bag.paths[static_cast<size_t>(ref.pathIndex)]);
-		if (pb.empty) {
-			continue;
-		}
-		if (!have) {
-			out.minX = pb.minX;
-			out.minY = pb.minY;
-			out.maxX = pb.maxX;
-			out.maxY = pb.maxY;
-			have = true;
-		} else {
-			out.minX = std::min(out.minX, pb.minX);
-			out.minY = std::min(out.minY, pb.minY);
-			out.maxX = std::max(out.maxX, pb.maxX);
-			out.maxY = std::max(out.maxY, pb.maxY);
-		}
-	}
-	out.valid = have;
-	return out;
+bool pointInBounds(const rigkit::artboards::SelBounds& b, const glm::vec2& mm) {
+	return b.valid && mm.x >= b.minX && mm.x <= b.maxX && mm.y >= b.minY && mm.y <= b.maxY;
 }
 
 } // namespace
@@ -73,7 +49,9 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 	const ImGuiStyle& style = ImGui::GetStyle();
 	const ImVec2 canvasPos = ImGui::GetCursorScreenPos();
 	const ImVec2 avail = ImGui::GetContentRegionAvail();
-	const float footerH = ImGui::GetFrameHeightWithSpacing() + style.ItemSpacing.y;
+	const float hintH = ImGui::GetTextLineHeightWithSpacing();
+	const float fieldsH = ImGui::GetFrameHeightWithSpacing() * 5.f;
+	const float footerH = hintH + fieldsH + style.ItemSpacing.y * 2.f;
 	const float width = std::max(rigkit::uiPx(80.f), avail.x);
 	const float height = std::max(rigkit::uiPx(80.f), avail.y - footerH);
 
@@ -92,13 +70,95 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 	const bool hovered = ImGui::IsItemHovered();
 	const bool active = ImGui::IsItemActive();
 	ImGuiIO& io = ImGui::GetIO();
+	const bool shift = io.KeyShift;
+	const bool alt = io.KeyAlt;
+	const bool middle = ImGui::IsMouseDown(ImGuiMouseButton_Middle);
+
+	rigkit::artboards::SurfaceMap map;
+	map.canvasPos = canvasPos;
+	map.view = m_view;
+	const glm::vec2 mouseMm = map.toMm(io.MousePos);
+	const glm::vec2 localPx{io.MousePos.x - canvasPos.x, io.MousePos.y - canvasPos.y};
 
 	if (hovered && io.MouseWheel != 0.f) {
-		m_surface.handleWheel(*m_view, {io.MousePos.x - canvasPos.x, io.MousePos.y - canvasPos.y},
-							  io.MouseWheel);
+		m_surface.handleWheel(*m_view, localPx, io.MouseWheel);
 	}
-	if (active && ImGui::IsMouseDown(ImGuiMouseButton_Middle)) {
+	if (active && middle) {
 		m_surface.handlePan(*m_view, {io.MouseDelta.x, io.MouseDelta.y});
+	}
+
+	auto bounds = rigkit::artboards::selectionBoundsOfBag(*m_bag, *m_sel);
+	rigkit::artboards::SurfaceApply apply;
+	apply.applyToSelection = [&](const rigkit::artboards::ApplyPathFn& fn) {
+		for (const auto& ref : m_sel->selectedRefs()) {
+			if (ref.layerIndex != 0 || ref.pathIndex < 0 ||
+				ref.pathIndex >= static_cast<int>(m_bag->paths.size())) {
+				continue;
+			}
+			fn(*m_bag, ref.pathIndex);
+		}
+	};
+	const auto restoreSnap = [this]() {
+		if (m_haveSnap) {
+			*m_bag = m_snap;
+		}
+	};
+
+	if (hovered && !middle && ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+		m_snap = *m_bag;
+		m_haveSnap = true;
+		m_marquee = false;
+		if (m_gizmo.beginClick(map, bounds, io.MousePos, mouseMm, shift, alt, true)) {
+			// scale / rotate from a handle
+		} else {
+			const float tolMm = std::max(1.f, 8.f / std::max(0.05f, m_view->scalePxPerMm));
+			int pi = -1;
+			int ci = -1;
+			auto part = rigkit::ecs::PathEditPart::None;
+			if (rigkit::pathEdit::pickHit(*m_bag, mouseMm, tolMm, pi, ci, part, false)) {
+				if (shift) {
+					m_sel->togglePath(0, pi);
+				} else if (!m_sel->isPathSelected(0, pi)) {
+					m_sel->selectOnly(0, pi);
+				}
+				bounds = rigkit::artboards::selectionBoundsOfBag(*m_bag, *m_sel);
+				if (bounds.valid) {
+					m_gizmo.beginMove(bounds, mouseMm);
+				}
+			} else if (pointInBounds(bounds, mouseMm)) {
+				m_gizmo.beginMove(bounds, mouseMm);
+			} else {
+				if (!shift) {
+					m_sel->clearPaths();
+				}
+				m_marquee = true;
+				m_marqueeA = mouseMm;
+				m_marqueeB = mouseMm;
+			}
+		}
+	}
+
+	if (active && !middle && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+		if (m_marquee) {
+			m_marqueeB = mouseMm;
+		} else if (m_gizmo.xform.kind != rigkit::artboards::SurfaceDrag::None) {
+			m_gizmo.drag(map, mouseMm, shift, alt, apply, restoreSnap);
+		}
+	}
+
+	if (ImGui::IsItemDeactivated()) {
+		if (m_marquee) {
+			const float dragPx =
+				glm::length((m_marqueeB - m_marqueeA) * m_view->scalePxPerMm);
+			if (dragPx > 4.f) {
+				const auto hits =
+					rigkit::artboards::marqueeHitsBag(*m_bag, 0, m_marqueeA, m_marqueeB);
+				rigkit::artboards::applyMarqueeHits(*m_sel, hits, shift);
+			}
+			m_marquee = false;
+		}
+		m_gizmo.end();
+		m_haveSnap = false;
 	}
 
 	ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -142,19 +202,36 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 		}
 	}
 
-	rigkit::artboards::SurfaceMap map;
-	map.canvasPos = canvasPos;
-	map.view = m_view;
-	const auto bounds = selectionBoundsOfBag(*m_bag, *m_sel);
+	for (const auto& ref : m_sel->selectedRefs()) {
+		if (ref.layerIndex != 0 || ref.pathIndex < 0 ||
+			ref.pathIndex >= static_cast<int>(m_bag->paths.size())) {
+			continue;
+		}
+		const int cmd = (ref.pathIndex == m_sel->pathIndex) ? m_sel->commandIndex : -1;
+		rigkit::artboards::drawPathAnchors(dl, map, m_bag->paths[static_cast<size_t>(ref.pathIndex)],
+										   cmd);
+	}
+
+	bounds = rigkit::artboards::selectionBoundsOfBag(*m_bag, *m_sel);
 	if (bounds.valid) {
 		m_gizmo.draw(dl, map, bounds, true);
+	}
+	if (m_marquee) {
+		rigkit::artboards::drawMarquee(dl, map, m_marqueeA, m_marqueeB);
 	}
 
 	dl->PopClipRect();
 
 	ImGui::SetCursorScreenPos(
 		ImVec2(canvasPos.x, canvasPos.y + height + style.ItemSpacing.y));
-	ImGui::TextDisabled("Wheel zoom   Middle-drag pan   A4 artboard");
+	ImGui::TextDisabled("Click select   Drag move/scale/rotate   Wheel zoom   Middle pan");
+	if (m_gizmo.xform.kind == rigkit::artboards::SurfaceDrag::None) {
+		m_numeric.drawFields(bounds, apply, [] {});
+	} else {
+		ImGui::BeginDisabled();
+		m_numeric.drawFields(bounds, apply, [] {});
+		ImGui::EndDisabled();
+	}
 }
 
 SurfaceHeroApp::SurfaceHeroApp() {
@@ -165,7 +242,7 @@ SurfaceHeroApp::SurfaceHeroApp() {
 }
 
 void SurfaceHeroApp::setup() {
-	spdlog::info("surface - artboard view + selection gizmo");
+	spdlog::info("surface - editable artboard (select, gizmo, numeric)");
 	m_engine->setClearColor(0.09f, 0.10f, 0.12f, 1.f);
 
 	auto* packs = m_engine->getPackManager();

@@ -1,4 +1,5 @@
 #include "PathTools.h"
+
 #include <algorithm>
 #include <cmath>
 
@@ -96,6 +97,22 @@ bool boundsIntersectRect(const plot::PathBounds& b, float x0, float y0, float x1
 	return !(b.maxX < minX || b.minX > maxX || b.maxY < minY || b.minY > maxY);
 }
 
+std::vector<ecs::PathSelRef> marqueeHitsBag(const ecs::CPaths& bag, int layerIndex,
+											const glm::vec2& a, const glm::vec2& b,
+											float flattenTolMm, bool includeTravels) {
+	std::vector<ecs::PathSelRef> hits;
+	for (int pi = 0; pi < static_cast<int>(bag.paths.size()); ++pi) {
+		if (!includeTravels && bag.isTravel(static_cast<size_t>(pi))) {
+			continue;
+		}
+		const auto pb = plot::boundsOfPath(bag.paths[static_cast<size_t>(pi)], flattenTolMm);
+		if (boundsIntersectRect(pb, a.x, a.y, b.x, b.y)) {
+			hits.push_back({layerIndex, pi});
+		}
+	}
+	return hits;
+}
+
 std::vector<ecs::PathSelRef> marqueeHits(MEcs& ecs, const std::vector<entt::entity>& layers,
 										 const glm::vec2& a, const glm::vec2& b,
 										 float flattenTolMm, bool includeTravels) {
@@ -112,16 +129,8 @@ std::vector<ecs::PathSelRef> marqueeHits(MEcs& ecs, const std::vector<entt::enti
 			}
 		}
 		const auto& bag = ecs.getComponent<ecs::CPaths>(e);
-		for (int pi = 0; pi < static_cast<int>(bag.paths.size()); ++pi) {
-			if (!includeTravels && bag.isTravel(static_cast<size_t>(pi))) {
-				continue;
-			}
-			const auto pb =
-				plot::boundsOfPath(bag.paths[static_cast<size_t>(pi)], flattenTolMm);
-			if (boundsIntersectRect(pb, a.x, a.y, b.x, b.y)) {
-				hits.push_back({li, pi});
-			}
-		}
+		const auto layerHits = marqueeHitsBag(bag, li, a, b, flattenTolMm, includeTravels);
+		hits.insert(hits.end(), layerHits.begin(), layerHits.end());
 	}
 	return hits;
 }

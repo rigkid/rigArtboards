@@ -1,9 +1,11 @@
 #include "PathfinderPanel.h"
+
 #include "CPathEditSelection.h"
 #include "CPaths.h"
 #include "PathBooleanOps.h"
 #include "PathEditOps.h"
 #include "PlotDoc.h"
+
 #include <algorithm>
 #include <imgui.h>
 #include <vector>

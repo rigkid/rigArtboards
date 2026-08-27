@@ -2,7 +2,7 @@
   "name": "surface",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Pan/zoom artboard + selection gizmo",
+  "description": "Editable artboard surface — select, gizmo, numeric",
   "window": { "width": 780, "height": 560, "title": "rigArtboards - surface" },
   "dependencies": [
     {

@@ -3,6 +3,7 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <imgui.h>
+
 #include "SelectionBounds.h"
 #include "SurfaceSeam.h"
 #include "SurfaceXform.h"

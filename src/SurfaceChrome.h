@@ -3,9 +3,10 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>
+
+#include "ecs/MEcs.h"
 #include "CPath.h"
 #include "SurfaceSeam.h"
-#include "ecs/MEcs.h"
 
 namespace rigkit {
 namespace artboards {

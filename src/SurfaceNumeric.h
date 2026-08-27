@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <glm/glm.hpp>
+
 #include "SelectionBounds.h"
 #include "SurfaceSeam.h"
 

@@ -10,13 +10,14 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <vector>
+
+#include "ecs/MEcs.h"
 #include "CPath.h"
 #include "CPathEditSelection.h"
 #include "CPaths.h"
 #include "CPlotLayer.h"
 #include "PathBounds.h"
 #include "PathEditOps.h"
-#include "ecs/MEcs.h"
 
 namespace rigkit {
 namespace artboards {
@@ -34,6 +35,14 @@ bool pickHitAcrossLayers(MEcs& ecs, const std::vector<entt::entity>& layers, con
 
 /** @brief Axis-aligned rect vs path bounds. */
 bool boundsIntersectRect(const plot::PathBounds& b, float x0, float y0, float x1, float y1);
+
+/**
+ * @brief Paths on one bag whose bounds intersect the marquee.
+ * @param layerIndex written into each hit.
+ */
+std::vector<ecs::PathSelRef> marqueeHitsBag(const ecs::CPaths& bag, int layerIndex,
+											const glm::vec2& a, const glm::vec2& b,
+											float flattenTolMm = 0.5f, bool includeTravels = false);
 
 /**
  * @brief Paths whose bounds intersect the marquee (visible unlocked layers).

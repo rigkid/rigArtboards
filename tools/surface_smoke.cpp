@@ -1,13 +1,13 @@
 /**
  * @brief Smoke: zoom-under-cursor ordering and selection bounds helpers.
  */
+#include "ecs/MEcs.h"
 #include "CBedView.h"
 #include "CPathEditSelection.h"
 #include "CPaths.h"
 #include "PathTools.h"
 #include "SelectionBounds.h"
 #include "SurfaceView.h"
-#include "ecs/MEcs.h"
 
 #include <cmath>
 #include <cstdio>
@@ -56,6 +56,16 @@ int main() {
 		rigkit::artboards::selectionBounds(ecs, {layer}, sel);
 	if (!bb.valid || bb.minX > 0.1f || bb.maxX < 29.f || bb.maxY < 29.f) {
 		return fail("selection bounds");
+	}
+	const auto bagBb = rigkit::artboards::selectionBoundsOfBag(bag, sel, 0);
+	if (!bagBb.valid || std::abs(bagBb.minX - bb.minX) > 1e-4f ||
+		std::abs(bagBb.maxX - bb.maxX) > 1e-4f) {
+		return fail("selectionBoundsOfBag");
+	}
+
+	const auto hits = rigkit::artboards::marqueeHitsBag(bag, 0, {-1.f, -1.f}, {11.f, 11.f});
+	if (hits.size() != 1 || hits[0].pathIndex != 0) {
+		return fail("marqueeHitsBag rect");
 	}
 
 	const float t = rigkit::artboards::segmentHitT(bag.paths[0], 1, {5.f, 0.f});

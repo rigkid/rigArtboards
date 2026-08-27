@@ -1,4 +1,5 @@
 #include "SurfaceView.h"
+
 #include <algorithm>
 #include <cmath>
 

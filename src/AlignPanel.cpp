@@ -1,9 +1,11 @@
 #include "AlignPanel.h"
+
 #include "CArtboard.h"
 #include "CPathEditSelection.h"
 #include "PathAlignOps.h"
 #include "PlotDoc.h"
 #include "SelectionBounds.h"
+
 #include <imgui.h>
 
 namespace rigkit {
@@ -50,7 +52,7 @@ void AlignPanel::renderContents() {
 			break;
 		}
 		if (!haveBoard) {
-			const auto& paper = m_doc->meta().sizeMM;
+			const auto paper = m_doc->pageSize();
 			frame = {0.f, 0.f, paper.x > 1.f ? paper.x : 210.f, paper.y > 1.f ? paper.y : 297.f};
 		}
 	}

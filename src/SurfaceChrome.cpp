@@ -1,6 +1,8 @@
 #include "SurfaceChrome.h"
-#include "CPlotDoc.h"
+
 #include "ecs/components/CGuide.h"
+#include "CPlotDoc.h"
+
 #include <algorithm>
 #include <cmath>
 

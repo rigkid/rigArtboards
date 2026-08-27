@@ -2,10 +2,11 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+
+#include "ecs/MEcs.h"
 #include "CPathEditSelection.h"
 #include "CPaths.h"
 #include "PathBounds.h"
-#include "ecs/MEcs.h"
 
 namespace rigkit {
 namespace artboards {
@@ -22,6 +23,13 @@ struct SelBounds {
 	float width() const { return maxX - minX; }
 	float height() const { return maxY - minY; }
 };
+
+/**
+ * @brief Union bounds of selected paths on one `CPaths` bag.
+ * @param layerIndex Refs on other layers are ignored.
+ */
+SelBounds selectionBoundsOfBag(const ecs::CPaths& bag, const ecs::CPathEditSelection& sel,
+							   int layerIndex = 0);
 
 /**
  * @brief Union bounds of selected paths across layers.
