@@ -30,6 +30,14 @@ void drawPenPreview(ImDrawList* dl, const SurfaceMap& map, const glm::vec2* from
 					bool hasOutgoing, const glm::vec2& outgoingMm, const glm::vec2& downMm,
 					const glm::vec2& mouseMm);
 
+/**
+ * @brief Idle pen chrome: last-point handles stay, plus a rubber-band to the cursor.
+ * @details Preview is only live while the mouse is down. After release the outgoing
+ * handle still lives on the selection - draw it here so the point does not vanish.
+ */
+void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& fromMm,
+					   bool hasOutgoing, const glm::vec2& outgoingMm, const glm::vec2& mouseMm);
+
 /** @brief Semi-transparent marquee rectangle in mm space. */
 void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm,
 				 const glm::vec2& bMm);

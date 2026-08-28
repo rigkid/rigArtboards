@@ -84,6 +84,24 @@ void drawPenPreview(ImDrawList* dl, const SurfaceMap& map, const glm::vec2* from
 	dl->AddCircleFilled(map.toScreen(downMm), 4.f, IM_COL32(255, 180, 80, 255));
 }
 
+void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& fromMm,
+					  bool hasOutgoing, const glm::vec2& outgoingMm, const glm::vec2& mouseMm) {
+	if (!dl || !map.view) {
+		return;
+	}
+	const ImU32 curveCol = IM_COL32(255, 180, 80, 180);
+	const ImU32 handleCol = IM_COL32(100, 160, 255, 200);
+	if (hasOutgoing) {
+		const glm::vec2 in = fromMm - (outgoingMm - fromMm);
+		dl->AddLine(map.toScreen(fromMm), map.toScreen(outgoingMm), handleCol, 1.f);
+		dl->AddLine(map.toScreen(fromMm), map.toScreen(in), handleCol, 1.f);
+		dl->AddCircleFilled(map.toScreen(outgoingMm), 3.5f, handleCol);
+		dl->AddCircleFilled(map.toScreen(in), 3.5f, handleCol);
+	}
+	dl->AddLine(map.toScreen(fromMm), map.toScreen(mouseMm), curveCol, 1.5f);
+	dl->AddCircleFilled(map.toScreen(fromMm), 4.f, IM_COL32(255, 180, 80, 255));
+}
+
 void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm,
 				 const glm::vec2& bMm) {
 	if (!dl || !map.view) {
