@@ -38,8 +38,8 @@ struct SurfaceGizmo {
 	void beginMove(const SelBounds& bounds, const glm::vec2& mouseMm);
 
 	/**
-	 * @brief Live drag update. Restores from @p snapApply then applies absolute xform.
-	 * @param snapApply re-applies the gesture-start geometry, then the new transform.
+	 * @brief Live drag update. Restores from @p restoreSnap then applies absolute xform.
+	 * @param restoreSnap re-applies the gesture-start geometry, then the new transform.
 	 */
 	bool drag(const SurfaceMap& map, const glm::vec2& mouseMm, bool shift, bool alt,
 			  const SurfaceApply& apply,
@@ -54,7 +54,7 @@ struct SurfaceGizmo {
 	void liveBox(float& r, float& t, float& w, float& h) const;
 };
 
-/** @brief Set ImGui cursor for a scale handle index (0–7). */
+/** @brief Set ImGui cursor for a scale handle index (0-7). */
 void setScaleCursor(int handle);
 
 } // namespace artboards

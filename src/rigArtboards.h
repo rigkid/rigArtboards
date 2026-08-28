@@ -4,7 +4,7 @@
 namespace rigkit {
 
 /**
- * @brief Shared millimetre editing surface — view, gizmo, numeric transform.
+ * @brief Shared millimetre editing surface - view, gizmo, numeric transform.
  * @details CODE ONLY. Artboard PODs live in **rigPlotComponent**.
  */
 class rigArtboards : public IPack {

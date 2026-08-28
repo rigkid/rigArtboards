@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "Rigkid",
   "license": "MIT Rigkid Contributors",
-  "description": "Shared editing surface over artboards — pan/zoom, selection gizmo, numeric transform, Pathfinder, Align. CODE ONLY.",
+  "description": "Shared editing surface over artboards - pan/zoom, selection gizmo, numeric transform, Pathfinder, Align. CODE ONLY.",
   "dependencies": [
     {
       "name": "rigPlotComponent",

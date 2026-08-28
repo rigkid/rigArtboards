@@ -17,7 +17,7 @@ enum class SurfaceDrag : uint8_t {
 
 /**
  * @brief Transient transform-gizmo state (not an ECS component).
- * @details Handles: 0–3 corners (TL TR BR BL), 4–7 mid-edges (T R B L).
+ * @details Handles: 0-3 corners (TL TR BR BL), 4-7 mid-edges (T R B L).
  */
 struct SurfaceXform {
 	SurfaceDrag kind = SurfaceDrag::None;

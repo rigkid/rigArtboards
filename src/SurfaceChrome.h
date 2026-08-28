@@ -12,7 +12,7 @@ namespace rigkit {
 namespace artboards {
 
 /**
- * @brief Chrome-pass drawing — guides, anchors, pen preview, marquee.
+ * @brief Chrome-pass drawing - guides, anchors, pen preview, marquee.
  * @details Call after the shell's content pass. Background grid lives on
  * `SurfaceView::drawGrid`.
  */

@@ -17,7 +17,7 @@ jobs:
           RIGKIT_CI_TOKEN: ${{ secrets.RIGKIT_CI_TOKEN }}
         run: |
           if [ -z "$RIGKIT_CI_TOKEN" ]; then
-            echo "::warning::No RIGKIT_CI_TOKEN — private host/pack clones may fail."
+            echo "::warning::No RIGKIT_CI_TOKEN - private host/pack clones may fail."
           fi
 
       - name: Checkout pack

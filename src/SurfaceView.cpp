@@ -12,7 +12,7 @@ void SurfaceView::handleWheel(ecs::CBedView& view, const glm::vec2& localPx, flo
 	}
 	const float oldScale = view.scalePxPerMm;
 	const float factor = wheel > 0.f ? wheelFactor : (1.f / wheelFactor);
-	const glm::vec2 mm = view.pxToMm(localPx); // old scale — keep under cursor
+	const glm::vec2 mm = view.pxToMm(localPx); // old scale - keep under cursor
 	view.scalePxPerMm = std::clamp(oldScale * factor, minScale, maxScale);
 	if (view.yUp) {
 		view.originPx.x = localPx.x - mm.x * view.scalePxPerMm;

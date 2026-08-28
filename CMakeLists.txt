@@ -2,7 +2,7 @@ file(READ "${CMAKE_CURRENT_LIST_DIR}/pack.json" PACK_JSON)
 string(JSON PACK_NAME GET "${PACK_JSON}" name)
 
 # Deps are loaded by RigKitPacks from pack.json order. Do not add_subdirectory
-# here — nested adds race the pack loader and reuse the same binary dirs.
+# here - nested adds race the pack loader and reuse the same binary dirs.
 
 add_library(${PACK_NAME} STATIC
 	src/rigArtboards.cpp

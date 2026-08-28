@@ -8,9 +8,9 @@ Shared editing surface for RigKit editors that work in millimetre space.
 
 ## Dependencies
 
-- **rigPlotComponent** — `CBedView`, `CArtboard`, `CPathEditSelection`
-- **rigVectorEditor** — `scalePath` / `rotatePath` / `translatePath`
-- **rigImGui** — ImGui draw list / input
+- **rigPlotComponent** - `CBedView`, `CArtboard`, `CPathEditSelection`
+- **rigVectorEditor** - `scalePath` / `rotatePath` / `translatePath`
+- **rigImGui** - ImGui draw list / input
 
 ## Public headers (keep narrow)
 

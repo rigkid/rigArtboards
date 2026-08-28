@@ -22,7 +22,7 @@
 namespace rigkit {
 namespace artboards {
 
-/** @brief Parameter t along a segment for Pen-Add insert (0.05–0.95). */
+/** @brief Parameter t along a segment for Pen-Add insert (0.05-0.95). */
 float segmentHitT(const ecs::CPath& path, int commandIndex, const glm::vec2& mm);
 
 /**
