@@ -65,6 +65,17 @@ void PathfinderPanel::renderContents() {
 	ImGui::Text("Selected: %zu", refs.size());
 	const bool can = refs.size() >= 2;
 
+	auto& flatten = m_doc->meta().flattenTolMm;
+	if (ImGui::DragFloat("Flatten", &flatten, 0.005f, 0.01f, 2.f, "%.3f mm")) {
+		m_doc->markPathsGpuDirty();
+		m_doc->setDirty(true);
+		m_doc->bumpToolpathPreviewEpoch();
+	}
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("How far a chord may stray from a curve (mm).\n"
+						  "Pathfinder bakes this into the result paths.");
+	}
+
 	auto run = [&](pathEdit::PathBooleanOp op, const char* label) {
 		if (!can) {
 			return;
@@ -104,7 +115,7 @@ void PathfinderPanel::renderContents() {
 				return;
 			}
 
-			if (!pathEdit::applyPathBoolean(*dst, opIndices, op)) {
+			if (!pathEdit::applyPathBoolean(*dst, opIndices, op, m_doc->flattenTolMm())) {
 				while (static_cast<int>(dst->paths.size()) > pathCountBeforeCopy) {
 					pathEdit::deletePath(*dst, static_cast<int>(dst->paths.size()) - 1);
 				}
