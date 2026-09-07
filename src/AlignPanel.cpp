@@ -1,6 +1,5 @@
 #include "AlignPanel.h"
 
-#include "CArtboard.h"
 #include "CPathEditSelection.h"
 #include "PathAlignOps.h"
 #include "PlotDoc.h"
@@ -41,20 +40,10 @@ void AlignPanel::renderContents() {
 			ImGui::TextDisabled("Select paths to define the frame.");
 		}
 	} else {
-		bool haveBoard = false;
-		for (auto e : m_doc->ecs().view<ecs::CArtboard>()) {
-			const auto& ab = m_doc->ecs().getComponent<ecs::CArtboard>(e);
-			if (!ab.visible) {
-				continue;
-			}
-			frame = {ab.pos.x, ab.pos.y, ab.pos.x + ab.size.x, ab.pos.y + ab.size.y};
-			haveBoard = true;
-			break;
-		}
-		if (!haveBoard) {
-			const auto paper = m_doc->pageSize();
-			frame = {0.f, 0.f, paper.x > 1.f ? paper.x : 210.f, paper.y > 1.f ? paper.y : 297.f};
-		}
+		// The artboard is the document page (CPage). CArtboard entities are
+		// machine workzones in machine space - never an align target here.
+		const auto paper = m_doc->pageSize();
+		frame = {0.f, 0.f, paper.x > 1.f ? paper.x : 210.f, paper.y > 1.f ? paper.y : 297.f};
 	}
 
 	auto run = [&](pathEdit::PathAlignOp op, const char* label, bool enabled) {
