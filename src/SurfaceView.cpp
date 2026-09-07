@@ -6,12 +6,11 @@
 namespace rigkit {
 namespace artboards {
 
-void SurfaceView::handleWheel(ecs::CBedView& view, const glm::vec2& localPx, float wheel) const {
-	if (wheel == 0.f || view.scalePxPerMm <= 0.f) {
+void SurfaceView::handleZoom(ecs::CBedView& view, const glm::vec2& localPx, float factor) const {
+	if (factor == 1.f || factor <= 0.f || view.scalePxPerMm <= 0.f) {
 		return;
 	}
 	const float oldScale = view.scalePxPerMm;
-	const float factor = wheel > 0.f ? wheelFactor : (1.f / wheelFactor);
 	const glm::vec2 mm = view.pxToMm(localPx); // old scale - keep under cursor
 	view.scalePxPerMm = std::clamp(oldScale * factor, minScale, maxScale);
 	if (view.yUp) {
@@ -20,6 +19,13 @@ void SurfaceView::handleWheel(ecs::CBedView& view, const glm::vec2& localPx, flo
 	} else {
 		view.originPx = localPx - mm * view.scalePxPerMm;
 	}
+}
+
+void SurfaceView::handleWheel(ecs::CBedView& view, const glm::vec2& localPx, float wheel) const {
+	if (wheel == 0.f) {
+		return;
+	}
+	handleZoom(view, localPx, wheel > 0.f ? wheelFactor : (1.f / wheelFactor));
 }
 
 void SurfaceView::handlePan(ecs::CBedView& view, const glm::vec2& deltaPx) const {
@@ -65,11 +71,10 @@ void SurfaceView::drawArtboards(ImDrawList* dl, const ImVec2& canvasPos, const e
 		}
 		const ImVec2 a = toScreen(board->pos.x, board->pos.y);
 		const ImVec2 b = toScreen(board->pos.x + board->size.x, board->pos.y + board->size.y);
-		const ImU32 fill =
-			IM_COL32(static_cast<int>(board->color.r * 255.f),
-					 static_cast<int>(board->color.g * 255.f),
-					 static_cast<int>(board->color.b * 255.f),
-					 static_cast<int>(board->color.a * (fillPage ? 255.f : 90.f)));
+		const ImU32 fill = IM_COL32(static_cast<int>(board->color.r * 255.f),
+									static_cast<int>(board->color.g * 255.f),
+									static_cast<int>(board->color.b * 255.f),
+									static_cast<int>(board->color.a * (fillPage ? 255.f : 90.f)));
 		const ImU32 stroke = IM_COL32(40, 40, 40, 220);
 		if (fillPage || board->color.a > 0.01f) {
 			dl->AddRectFilled(a, b, fill);

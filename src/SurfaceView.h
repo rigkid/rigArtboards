@@ -30,6 +30,9 @@ struct SurfaceView {
 	/** @brief Zoom keeping @p localPx (canvas-local) fixed in mm. */
 	void handleWheel(ecs::CBedView& view, const glm::vec2& localPx, float wheel) const;
 
+	/** @brief Multiply scale by @p factor, keeping @p localPx fixed in mm. */
+	void handleZoom(ecs::CBedView& view, const glm::vec2& localPx, float factor) const;
+
 	/** @brief Pan by screen-pixel delta. */
 	void handlePan(ecs::CBedView& view, const glm::vec2& deltaPx) const;
 
