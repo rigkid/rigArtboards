@@ -27,12 +27,16 @@ class PathfinderPanel : public IWindow {
 		m_mutate = std::move(hook);
 	}
 
+	/** @brief Opens the host Offset Path dialog (live preview lives on the artboard). */
+	void setOffsetPathHook(std::function<void()> hook) { m_offsetPath = std::move(hook); }
+
   protected:
 	void renderContents() override;
 
   private:
 	PlotDoc* m_doc = nullptr;
 	std::function<void(const char*, std::function<void()>)> m_mutate;
+	std::function<void()> m_offsetPath;
 	std::string m_status;
 };
 

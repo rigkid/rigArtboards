@@ -190,6 +190,19 @@ void PathfinderPanel::renderContents() {
 	if (!can) {
 		ImGui::EndDisabled();
 	}
+
+	ImGui::Spacing();
+	ImGui::TextDisabled("Offset");
+	const bool canOffset = !refs.empty() && m_offsetPath;
+	if (!canOffset) {
+		ImGui::BeginDisabled();
+	}
+	if (ImGui::Button("Offset Path...", ImVec2(-1, 0)) && m_offsetPath) {
+		m_offsetPath();
+	}
+	if (!canOffset) {
+		ImGui::EndDisabled();
+	}
 	if (!m_status.empty()) {
 		ImGui::Separator();
 		ImGui::TextUnformatted(m_status.c_str());
