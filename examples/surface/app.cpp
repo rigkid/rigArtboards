@@ -110,7 +110,7 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 		if (m_gizmo.beginClick(map, bounds, io.MousePos, mouseMm, shift, alt, true)) {
 			// scale / rotate from a handle
 		} else {
-			const float tolMm = std::max(1.f, 8.f / std::max(0.05f, m_view->scalePxPerMm));
+			const float tolMm = rigkit::artboards::pathChromeHitMm(map);
 			int pi = -1;
 			int ci = -1;
 			auto part = rigkit::ecs::PathEditPart::None;

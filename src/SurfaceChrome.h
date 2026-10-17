@@ -17,9 +17,37 @@ namespace artboards {
  * `SurfaceView::drawGrid`.
  */
 
-/** @brief Draw Bezier anchors + handles (svgEditor-grade outlined dark knobs). */
+/** @brief Bezier knob / path-node chrome. Defaults match svgEditor knobs. */
+struct PathChromeStyle {
+	bool showHandles = true;
+	bool handlesOnSelectedOnly = false;
+	/** @brief Handle knob radius in 1x design px. Draw / hit via uiPx(). */
+	float handlePx = 3.5f;
+	/** @brief Path-node radius in 1x design px. Draw / hit via uiPx(). */
+	float nodePx = 3.5f;
+	/// 0 = Circle, 1 = Square
+	int handleShape = 0;
+	/// 0 = Auto (smooth circle, corner square), 1 = Circles, 2 = Squares
+	int nodeTypeDisplay = 0;
+	ImU32 handleCol = IM_COL32(100, 160, 255, 180);
+	ImU32 handleFill = IM_COL32(100, 160, 255, 230);
+	ImU32 nodeFill = IM_COL32(32, 32, 40, 255);
+	ImU32 nodeOutline = IM_COL32(255, 255, 255, 230);
+	ImU32 nodeSelected = IM_COL32(255, 140, 60, 255);
+};
+
+/**
+ * @brief Draw Bezier anchors + handles.
+ * @param style Omit for svgEditor knobs (dark fill, white ring, blue stems).
+ */
 void drawPathAnchors(ImDrawList* dl, const SurfaceMap& map, const ecs::CPath& path,
-					 int selectedCommand);
+					 int selectedCommand, const PathChromeStyle& style = {});
+
+/**
+ * @brief Screen-constant pick slop in mm for nodes / handles.
+ * @details `uiPx(nodePx + pad)` over the view scale so HiDPI and zoom match the draw.
+ */
+float pathChromeHitMm(const SurfaceMap& map, const PathChromeStyle& style = {});
 
 /**
  * @brief Pen drag preview: cubic (or line) from previous point + handle stems at down.

@@ -17,10 +17,10 @@ namespace artboards {
  * Shift while rotating snaps to 15°. Shell applies path ops via `SurfaceApply`.
  */
 struct SurfaceGizmo {
-	float handleRadiusPx = 4.f;
-	float scaleHitPadPx = 2.f;
+	float handleRadiusPx = 4.f; ///< 1x design. Draw / hit via uiPx().
+	float scaleHitPadPx = 2.f;	///< Extra hit pad in 1x design px.
 	float rotateStemMm = 18.f;
-	float rotateCornerOuterPx = 30.f;
+	float rotateCornerOuterPx = 30.f; ///< Corner rotate ring outer radius, 1x design px.
 
 	SurfaceXform xform;
 

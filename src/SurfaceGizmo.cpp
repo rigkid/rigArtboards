@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include "PathEditOps.h"
+#include "UiDpi.h"
 
 namespace rigkit {
 namespace artboards {
@@ -92,7 +93,7 @@ int SurfaceGizmo::hitScaleHandle(const SurfaceMap& map, const SelBounds& bounds,
 	}
 	float hx[8]{}, hy[8]{};
 	handlePositions(bounds.minX, bounds.minY, bounds.width(), bounds.height(), hx, hy);
-	const float hitR = handleRadiusPx + scaleHitPadPx;
+	const float hitR = uiPx(handleRadiusPx + scaleHitPadPx);
 	for (int i = 0; i < 8; ++i) {
 		const ImVec2 s = map.toScreen({hx[i], hy[i]});
 		const float dx = mousePx.x - s.x;
@@ -113,7 +114,7 @@ bool SurfaceGizmo::hitRotate(const SurfaceMap& map, const SelBounds& bounds,
 	const glm::vec2 topCenter{bounds.minX + bounds.width() * 0.5f, bounds.minY};
 	const glm::vec2 rotMm{topCenter.x, topCenter.y - stemMm};
 	const ImVec2 rotS = map.toScreen(rotMm);
-	const float rotStemHitR = handleRadiusPx + 6.f;
+	const float rotStemHitR = uiPx(handleRadiusPx + 6.f);
 	const float rdx = mousePx.x - rotS.x;
 	const float rdy = mousePx.y - rotS.y;
 	if (rdx * rdx + rdy * rdy <= rotStemHitR * rotStemHitR) {
@@ -123,14 +124,14 @@ bool SurfaceGizmo::hitRotate(const SurfaceMap& map, const SelBounds& bounds,
 	handlePositions(bounds.minX, bounds.minY, bounds.width(), bounds.height(), hx, hy);
 	const ImVec2 center =
 		map.toScreen({bounds.minX + bounds.width() * 0.5f, bounds.minY + bounds.height() * 0.5f});
-	const float rotCornerInner = handleRadiusPx + scaleHitPadPx + 1.f;
+	const float rotCornerInner = uiPx(handleRadiusPx + scaleHitPadPx + 1.f);
 	for (int i = 0; i < 4; ++i) {
 		const ImVec2 sh = map.toScreen({hx[i], hy[i]});
 		const float dx = mousePx.x - sh.x;
 		const float dy = mousePx.y - sh.y;
 		const float d2 = dx * dx + dy * dy;
 		if (d2 < rotCornerInner * rotCornerInner ||
-			d2 > rotateCornerOuterPx * rotateCornerOuterPx) {
+			d2 > uiPx(rotateCornerOuterPx) * uiPx(rotateCornerOuterPx)) {
 			continue;
 		}
 		const float vx = sh.x - center.x;
@@ -159,15 +160,15 @@ void SurfaceGizmo::draw(ImDrawList* dl, const SurfaceMap& map, const SelBounds& 
 
 	const ImVec2 b0 = map.toScreen({boxR, boxT});
 	const ImVec2 b1 = map.toScreen({boxR + boxW, boxT + boxH});
-	dl->AddRect(b0, b1, IM_COL32(255, 200, 80, 220), 0.f, 0, 1.5f);
+	dl->AddRect(b0, b1, IM_COL32(255, 200, 80, 220), 0.f, 0, uiPx(1.5f));
 
+	const float handleR = uiPx(handleRadiusPx);
 	float hx[8]{}, hy[8]{};
 	handlePositions(boxR, boxT, boxW, boxH, hx, hy);
 	for (int i = 0; i < 8; ++i) {
 		const ImVec2 s = map.toScreen({hx[i], hy[i]});
-		dl->AddRectFilled(ImVec2(s.x - handleRadiusPx, s.y - handleRadiusPx),
-						  ImVec2(s.x + handleRadiusPx, s.y + handleRadiusPx),
-						  IM_COL32(255, 200, 80, 255));
+		dl->AddRectFilled(ImVec2(s.x - handleR, s.y - handleR),
+						  ImVec2(s.x + handleR, s.y + handleR), IM_COL32(255, 200, 80, 255));
 	}
 
 	const float stemMm = std::max(2.f, rotateStemMm / std::max(0.05f, map.view->scalePxPerMm));
@@ -175,9 +176,9 @@ void SurfaceGizmo::draw(ImDrawList* dl, const SurfaceMap& map, const SelBounds& 
 	const glm::vec2 rotMm{topCenter.x, topCenter.y - stemMm};
 	const ImVec2 topS = map.toScreen(topCenter);
 	const ImVec2 rotS = map.toScreen(rotMm);
-	dl->AddLine(topS, rotS, IM_COL32(255, 200, 80, 200), 1.5f);
-	dl->AddCircleFilled(rotS, handleRadiusPx + 1.5f, IM_COL32(255, 200, 80, 255));
-	dl->AddCircle(rotS, handleRadiusPx + 1.5f, IM_COL32(40, 40, 40, 200), 0, 1.5f);
+	dl->AddLine(topS, rotS, IM_COL32(255, 200, 80, 200), uiPx(1.5f));
+	dl->AddCircleFilled(rotS, handleR + uiPx(1.5f), IM_COL32(255, 200, 80, 255));
+	dl->AddCircle(rotS, handleR + uiPx(1.5f), IM_COL32(40, 40, 40, 200), 0, uiPx(1.5f));
 
 	if (active && xform.kind == SurfaceDrag::None) {
 		const ImVec2 mp = ImGui::GetIO().MousePos;

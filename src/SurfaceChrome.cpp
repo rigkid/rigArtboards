@@ -2,42 +2,108 @@
 
 #include "ecs/components/CGuide.h"
 #include "CPlotDoc.h"
+#include "PathEditOps.h"
+#include "UiDpi.h"
 
 #include <algorithm>
 #include <cmath>
 
 namespace rigkit {
 namespace artboards {
+namespace {
+
+void drawKnob(ImDrawList* dl, const ImVec2& pt, float r, ImU32 fill, bool square) {
+	if (square) {
+		const ImVec2 a{pt.x - r, pt.y - r};
+		const ImVec2 b{pt.x + r, pt.y + r};
+		dl->AddRectFilled(a, b, fill);
+	} else {
+		dl->AddCircleFilled(pt, r, fill);
+	}
+}
+
+void drawNode(ImDrawList* dl, const ImVec2& pt, float r, ImU32 fill, ImU32 outline, bool square) {
+	if (square) {
+		const ImVec2 a{pt.x - r, pt.y - r};
+		const ImVec2 b{pt.x + r, pt.y + r};
+		dl->AddRectFilled(a, b, fill);
+		dl->AddRect(a, b, outline, 0.f, 0, uiPx(1.5f));
+	} else {
+		dl->AddCircleFilled(pt, r, fill);
+		dl->AddCircle(pt, r, outline, 0, uiPx(1.5f));
+	}
+}
+
+bool nodeIsSquare(const ecs::CPath& path, int commandIndex, int nodeTypeDisplay) {
+	if (nodeTypeDisplay == 1) {
+		return false;
+	}
+	if (nodeTypeDisplay == 2) {
+		return true;
+	}
+	return !pathEdit::endpointIsSmooth(path, commandIndex);
+}
+
+bool showHandlesForNode(const PathChromeStyle& style, int selectedCommand, int nodeIndex) {
+	if (!style.showHandles) {
+		return false;
+	}
+	if (!style.handlesOnSelectedOnly) {
+		return true;
+	}
+	return nodeIndex == selectedCommand;
+}
+
+} // namespace
+
+float pathChromeHitMm(const SurfaceMap& map, const PathChromeStyle& style) {
+	const float scale =
+		(map.view && map.view->scalePxPerMm > 0.05f) ? map.view->scalePxPerMm : 0.05f;
+	return uiPx(style.nodePx + 3.5f) / scale;
+}
 
 void drawPathAnchors(ImDrawList* dl, const SurfaceMap& map, const ecs::CPath& path,
-					 int selectedCommand) {
+					 int selectedCommand, const PathChromeStyle& style) {
 	if (!dl || !map.view) {
 		return;
 	}
 	glm::vec2 prev{};
+	int prevCi = -1;
 	bool havePrev = false;
+	const bool squareHandle = style.handleShape == 1;
+	const float handleR = uiPx(style.handlePx);
+	const float nodeR = uiPx(style.nodePx);
+	const float nodeSelR = uiPx(style.nodePx + 1.5f);
+	const float stem = uiPx(1.f);
 	for (int ci = 0; ci < static_cast<int>(path.commands.size()); ++ci) {
 		const auto& c = path.commands[static_cast<size_t>(ci)];
 		if (c.type == ecs::CPath::Cmd::Close) {
 			continue;
 		}
 		if ((c.type == ecs::CPath::Cmd::CubicTo || c.type == ecs::CPath::Cmd::QuadTo) && havePrev) {
-			dl->AddLine(map.toScreen(prev), map.toScreen(c.c1), IM_COL32(100, 160, 255, 180), 1.f);
+			const bool showC1 = showHandlesForNode(style, selectedCommand, prevCi);
+			const bool showC2 = showHandlesForNode(style, selectedCommand, ci);
 			if (c.type == ecs::CPath::Cmd::CubicTo) {
-				dl->AddLine(map.toScreen(c.p), map.toScreen(c.c2), IM_COL32(100, 160, 255, 180),
-							1.f);
-				dl->AddCircleFilled(map.toScreen(c.c1), 3.5f, IM_COL32(100, 160, 255, 230));
-				dl->AddCircleFilled(map.toScreen(c.c2), 3.5f, IM_COL32(100, 160, 255, 230));
-			} else {
-				dl->AddCircleFilled(map.toScreen(c.c1), 3.5f, IM_COL32(100, 160, 255, 230));
+				if (showC1) {
+					dl->AddLine(map.toScreen(prev), map.toScreen(c.c1), style.handleCol, stem);
+					drawKnob(dl, map.toScreen(c.c1), handleR, style.handleFill, squareHandle);
+				}
+				if (showC2) {
+					dl->AddLine(map.toScreen(c.p), map.toScreen(c.c2), style.handleCol, stem);
+					drawKnob(dl, map.toScreen(c.c2), handleR, style.handleFill, squareHandle);
+				}
+			} else if (showC1 || showC2) {
+				dl->AddLine(map.toScreen(prev), map.toScreen(c.c1), style.handleCol, stem);
+				drawKnob(dl, map.toScreen(c.c1), handleR, style.handleFill, squareHandle);
 			}
 		}
 		const bool selected = (ci == selectedCommand);
-		const ImVec2 pt = map.toScreen(c.p);
-		dl->AddCircleFilled(pt, selected ? 5.f : 3.5f,
-							selected ? IM_COL32(255, 140, 60, 255) : IM_COL32(32, 32, 40, 255));
-		dl->AddCircle(pt, selected ? 5.f : 3.5f, IM_COL32(255, 255, 255, 230), 0, 1.5f);
+		const float r = selected ? nodeSelR : nodeR;
+		const ImU32 fill = selected ? style.nodeSelected : style.nodeFill;
+		drawNode(dl, map.toScreen(c.p), r, fill, style.nodeOutline,
+				 nodeIsSquare(path, ci, style.nodeTypeDisplay));
 		prev = c.p;
+		prevCi = ci;
 		havePrev = true;
 	}
 }
@@ -65,21 +131,21 @@ void drawPenPreview(ImDrawList* dl, const SurfaceMap& map, const glm::vec2* from
 			const glm::vec2 p = u * u * u * (*fromMm) + 3.f * u * u * t * c1 +
 								3.f * u * t * t * c2 + t * t * t * downMm;
 			const ImVec2 cur = map.toScreen(p);
-			dl->AddLine(prev, cur, curveCol, 1.5f);
+			dl->AddLine(prev, cur, curveCol, uiPx(1.5f));
 			prev = cur;
 		}
 		if (hasOutgoing) {
-			dl->AddLine(map.toScreen(*fromMm), map.toScreen(c1), handleCol, 1.f);
-			dl->AddCircleFilled(map.toScreen(c1), 3.f, handleCol);
+			dl->AddLine(map.toScreen(*fromMm), map.toScreen(c1), handleCol, uiPx(1.f));
+			dl->AddCircleFilled(map.toScreen(c1), uiPx(3.f), handleCol);
 		}
 	}
 
 	// Handle stems at the new point (outgoing = mouse, incoming = mirror).
-	dl->AddLine(map.toScreen(downMm), map.toScreen(outHandle), handleCol, 1.f);
-	dl->AddLine(map.toScreen(downMm), map.toScreen(c2), handleCol, 1.f);
-	dl->AddCircleFilled(map.toScreen(outHandle), 3.5f, handleCol);
-	dl->AddCircleFilled(map.toScreen(c2), 3.5f, handleCol);
-	dl->AddCircleFilled(map.toScreen(downMm), 4.f, IM_COL32(255, 180, 80, 255));
+	dl->AddLine(map.toScreen(downMm), map.toScreen(outHandle), handleCol, uiPx(1.f));
+	dl->AddLine(map.toScreen(downMm), map.toScreen(c2), handleCol, uiPx(1.f));
+	dl->AddCircleFilled(map.toScreen(outHandle), uiPx(3.5f), handleCol);
+	dl->AddCircleFilled(map.toScreen(c2), uiPx(3.5f), handleCol);
+	dl->AddCircleFilled(map.toScreen(downMm), uiPx(4.f), IM_COL32(255, 180, 80, 255));
 }
 
 void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& fromMm,
@@ -91,13 +157,13 @@ void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& f
 	const ImU32 handleCol = IM_COL32(100, 160, 255, 200);
 	if (hasOutgoing) {
 		const glm::vec2 in = fromMm - (outgoingMm - fromMm);
-		dl->AddLine(map.toScreen(fromMm), map.toScreen(outgoingMm), handleCol, 1.f);
-		dl->AddLine(map.toScreen(fromMm), map.toScreen(in), handleCol, 1.f);
-		dl->AddCircleFilled(map.toScreen(outgoingMm), 3.5f, handleCol);
-		dl->AddCircleFilled(map.toScreen(in), 3.5f, handleCol);
+		dl->AddLine(map.toScreen(fromMm), map.toScreen(outgoingMm), handleCol, uiPx(1.f));
+		dl->AddLine(map.toScreen(fromMm), map.toScreen(in), handleCol, uiPx(1.f));
+		dl->AddCircleFilled(map.toScreen(outgoingMm), uiPx(3.5f), handleCol);
+		dl->AddCircleFilled(map.toScreen(in), uiPx(3.5f), handleCol);
 	}
-	dl->AddLine(map.toScreen(fromMm), map.toScreen(mouseMm), curveCol, 1.5f);
-	dl->AddCircleFilled(map.toScreen(fromMm), 4.f, IM_COL32(255, 180, 80, 255));
+	dl->AddLine(map.toScreen(fromMm), map.toScreen(mouseMm), curveCol, uiPx(1.5f));
+	dl->AddCircleFilled(map.toScreen(fromMm), uiPx(4.f), IM_COL32(255, 180, 80, 255));
 }
 
 void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm,
@@ -110,7 +176,7 @@ void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm,
 	const ImVec2 r0{std::min(a.x, b.x), std::min(a.y, b.y)};
 	const ImVec2 r1{std::max(a.x, b.x), std::max(a.y, b.y)};
 	dl->AddRectFilled(r0, r1, IM_COL32(80, 160, 255, 40));
-	dl->AddRect(r0, r1, IM_COL32(80, 160, 255, 220), 0.f, 0, 1.5f);
+	dl->AddRect(r0, r1, IM_COL32(80, 160, 255, 220), 0.f, 0, uiPx(1.5f));
 }
 
 void drawGuides(ImDrawList* dl, const SurfaceMap& map, MEcs& ecs, uint32_t docId,
