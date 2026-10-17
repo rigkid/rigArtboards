@@ -1,8 +1,8 @@
 #pragma once
 
-#include <functional>
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <functional>
 
 #include "SelectionBounds.h"
 #include "SurfaceSeam.h"
@@ -42,8 +42,7 @@ struct SurfaceGizmo {
 	 * @param restoreSnap re-applies the gesture-start geometry, then the new transform.
 	 */
 	bool drag(const SurfaceMap& map, const glm::vec2& mouseMm, bool shift, bool alt,
-			  const SurfaceApply& apply,
-			  const std::function<void()>& restoreSnap);
+			  const SurfaceApply& apply, const std::function<void()>& restoreSnap);
 
 	void end();
 

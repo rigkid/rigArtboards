@@ -1,8 +1,8 @@
 #pragma once
 
-#include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <entt/entt.hpp>
 
 #include "ecs/MEcs.h"
 #include "CPath.h"
@@ -39,8 +39,7 @@ void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& f
 					   bool hasOutgoing, const glm::vec2& outgoingMm, const glm::vec2& mouseMm);
 
 /** @brief Semi-transparent marquee rectangle in mm space. */
-void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm,
-				 const glm::vec2& bMm);
+void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm, const glm::vec2& bMm);
 
 /**
  * @brief Draw CGuide lines for @p docId (or all if docId == 0 and no filter needed).

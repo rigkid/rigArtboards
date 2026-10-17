@@ -1,17 +1,17 @@
 #include "app.h"
 
-#include "core/pack/MPack.h"
 #include "core/RigKitEngine.h"
+#include "core/pack/MPack.h"
 #include "packs/rigArtboards/src/PathTools.h"
-#include "packs/rigArtboards/src/rigArtboards.h"
 #include "packs/rigArtboards/src/SelectionBounds.h"
 #include "packs/rigArtboards/src/SurfaceChrome.h"
 #include "packs/rigArtboards/src/SurfaceSeam.h"
+#include "packs/rigArtboards/src/rigArtboards.h"
 #include "packs/rigComponent/src/rigComponent.h"
-#include "packs/rigImGui/src/Mui.h"
 #include "packs/rigImGui/src/MWindow.h"
-#include "packs/rigImGui/src/rigImGui.h"
+#include "packs/rigImGui/src/Mui.h"
 #include "packs/rigImGui/src/UiDpi.h"
+#include "packs/rigImGui/src/rigImGui.h"
 #include "packs/rigPlotComponent/src/PathFlatten.h"
 #include "packs/rigPlotComponent/src/rigPlotComponent.h"
 #include "packs/rigSystems/src/rigSystems.h"
@@ -33,8 +33,7 @@ bool pointInBounds(const rigkit::artboards::SelBounds& b, const glm::vec2& mm) {
 } // namespace
 
 SurfaceHeroApp::SurfacePanel::SurfacePanel(rigkit::ecs::CBedView* view,
-										   rigkit::ecs::CArtboard* board,
-										   rigkit::ecs::CPaths* bag,
+										   rigkit::ecs::CArtboard* board, rigkit::ecs::CPaths* bag,
 										   rigkit::ecs::CPathEditSelection* sel)
 	: IWindow("Surface", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar |
 							 ImGuiWindowFlags_NoScrollWithMouse),
@@ -148,8 +147,7 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 
 	if (ImGui::IsItemDeactivated()) {
 		if (m_marquee) {
-			const float dragPx =
-				glm::length((m_marqueeB - m_marqueeA) * m_view->scalePxPerMm);
+			const float dragPx = glm::length((m_marqueeB - m_marqueeA) * m_view->scalePxPerMm);
 			if (dragPx > 4.f) {
 				const auto hits =
 					rigkit::artboards::marqueeHitsBag(*m_bag, 0, m_marqueeA, m_marqueeB);
@@ -208,8 +206,8 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 			continue;
 		}
 		const int cmd = (ref.pathIndex == m_sel->pathIndex) ? m_sel->commandIndex : -1;
-		rigkit::artboards::drawPathAnchors(dl, map, m_bag->paths[static_cast<size_t>(ref.pathIndex)],
-										   cmd);
+		rigkit::artboards::drawPathAnchors(dl, map,
+										   m_bag->paths[static_cast<size_t>(ref.pathIndex)], cmd);
 	}
 
 	bounds = rigkit::artboards::selectionBoundsOfBag(*m_bag, *m_sel);
@@ -222,8 +220,7 @@ void SurfaceHeroApp::SurfacePanel::renderContents() {
 
 	dl->PopClipRect();
 
-	ImGui::SetCursorScreenPos(
-		ImVec2(canvasPos.x, canvasPos.y + height + style.ItemSpacing.y));
+	ImGui::SetCursorScreenPos(ImVec2(canvasPos.x, canvasPos.y + height + style.ItemSpacing.y));
 	ImGui::TextDisabled("Click select   Drag move/scale/rotate   Wheel zoom   Middle pan");
 	if (m_gizmo.xform.kind == rigkit::artboards::SurfaceDrag::None) {
 		m_numeric.drawFields(bounds, apply, [] {});

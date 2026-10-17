@@ -21,10 +21,8 @@ void drawPathAnchors(ImDrawList* dl, const SurfaceMap& map, const ecs::CPath& pa
 		if (c.type == ecs::CPath::Cmd::Close) {
 			continue;
 		}
-		if ((c.type == ecs::CPath::Cmd::CubicTo || c.type == ecs::CPath::Cmd::QuadTo) &&
-			havePrev) {
-			dl->AddLine(map.toScreen(prev), map.toScreen(c.c1), IM_COL32(100, 160, 255, 180),
-						1.f);
+		if ((c.type == ecs::CPath::Cmd::CubicTo || c.type == ecs::CPath::Cmd::QuadTo) && havePrev) {
+			dl->AddLine(map.toScreen(prev), map.toScreen(c.c1), IM_COL32(100, 160, 255, 180), 1.f);
 			if (c.type == ecs::CPath::Cmd::CubicTo) {
 				dl->AddLine(map.toScreen(c.p), map.toScreen(c.c2), IM_COL32(100, 160, 255, 180),
 							1.f);
@@ -65,7 +63,7 @@ void drawPenPreview(ImDrawList* dl, const SurfaceMap& map, const glm::vec2* from
 			const float t = static_cast<float>(i) / static_cast<float>(kSteps);
 			const float u = 1.f - t;
 			const glm::vec2 p = u * u * u * (*fromMm) + 3.f * u * u * t * c1 +
-							   3.f * u * t * t * c2 + t * t * t * downMm;
+								3.f * u * t * t * c2 + t * t * t * downMm;
 			const ImVec2 cur = map.toScreen(p);
 			dl->AddLine(prev, cur, curveCol, 1.5f);
 			prev = cur;
@@ -85,7 +83,7 @@ void drawPenPreview(ImDrawList* dl, const SurfaceMap& map, const glm::vec2* from
 }
 
 void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& fromMm,
-					  bool hasOutgoing, const glm::vec2& outgoingMm, const glm::vec2& mouseMm) {
+					   bool hasOutgoing, const glm::vec2& outgoingMm, const glm::vec2& mouseMm) {
 	if (!dl || !map.view) {
 		return;
 	}
@@ -134,7 +132,8 @@ void drawGuides(ImDrawList* dl, const SurfaceMap& map, MEcs& ecs, uint32_t docId
 		const ImU32 lineCol = isSel ? selCol : col;
 		const float thickness = isSel ? 2.f : 1.f;
 		if (g.vertical) {
-			const float x = canvasPos.x + map.view->originPx.x + g.position * map.view->scalePxPerMm;
+			const float x =
+				canvasPos.x + map.view->originPx.x + g.position * map.view->scalePxPerMm;
 			if (x < canvasPos.x || x > canvasPos.x + canvasW) {
 				continue;
 			}
@@ -152,8 +151,7 @@ void drawGuides(ImDrawList* dl, const SurfaceMap& map, MEcs& ecs, uint32_t docId
 	if (dragActive) {
 		const ImU32 dragCol = IM_COL32(255, 200, 80, 200);
 		if (dragVertical) {
-			const float x =
-				canvasPos.x + map.view->originPx.x + dragPosMm * map.view->scalePxPerMm;
+			const float x = canvasPos.x + map.view->originPx.x + dragPosMm * map.view->scalePxPerMm;
 			dl->AddLine(ImVec2(x, canvasPos.y), ImVec2(x, canvasPos.y + canvasH), dragCol, 1.5f);
 		} else {
 			const float y = canvasPos.y + map.view->mmToPx({0.f, dragPosMm}).y;

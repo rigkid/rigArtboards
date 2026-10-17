@@ -109,8 +109,7 @@ bool SurfaceGizmo::hitRotate(const SurfaceMap& map, const SelBounds& bounds,
 	if (!bounds.valid || !map.view) {
 		return false;
 	}
-	const float stemMm =
-		std::max(2.f, rotateStemMm / std::max(0.05f, map.view->scalePxPerMm));
+	const float stemMm = std::max(2.f, rotateStemMm / std::max(0.05f, map.view->scalePxPerMm));
 	const glm::vec2 topCenter{bounds.minX + bounds.width() * 0.5f, bounds.minY};
 	const glm::vec2 rotMm{topCenter.x, topCenter.y - stemMm};
 	const ImVec2 rotS = map.toScreen(rotMm);
@@ -122,8 +121,8 @@ bool SurfaceGizmo::hitRotate(const SurfaceMap& map, const SelBounds& bounds,
 	}
 	float hx[8]{}, hy[8]{};
 	handlePositions(bounds.minX, bounds.minY, bounds.width(), bounds.height(), hx, hy);
-	const ImVec2 center = map.toScreen(
-		{bounds.minX + bounds.width() * 0.5f, bounds.minY + bounds.height() * 0.5f});
+	const ImVec2 center =
+		map.toScreen({bounds.minX + bounds.width() * 0.5f, bounds.minY + bounds.height() * 0.5f});
 	const float rotCornerInner = handleRadiusPx + scaleHitPadPx + 1.f;
 	for (int i = 0; i < 4; ++i) {
 		const ImVec2 sh = map.toScreen({hx[i], hy[i]});
@@ -171,8 +170,7 @@ void SurfaceGizmo::draw(ImDrawList* dl, const SurfaceMap& map, const SelBounds& 
 						  IM_COL32(255, 200, 80, 255));
 	}
 
-	const float stemMm =
-		std::max(2.f, rotateStemMm / std::max(0.05f, map.view->scalePxPerMm));
+	const float stemMm = std::max(2.f, rotateStemMm / std::max(0.05f, map.view->scalePxPerMm));
 	const glm::vec2 topCenter{boxR + boxW * 0.5f, boxT};
 	const glm::vec2 rotMm{topCenter.x, topCenter.y - stemMm};
 	const ImVec2 topS = map.toScreen(topCenter);
@@ -348,9 +346,8 @@ bool SurfaceGizmo::drag(const SurfaceMap& map, const glm::vec2& mouseMm, bool sh
 		const float sx = (std::abs(w0) > 1e-6f) ? (nw / w0) : 1.f;
 		const float sy = (std::abs(h0) > 1e-6f) ? (nh / h0) : 1.f;
 		const glm::vec2 origin = scaleOrigin(r0, t0, w0, h0, h, xform.aboutCentre);
-		apply.applyToSelection([&](ecs::CPaths& bag, int pi) {
-			return pathEdit::scalePath(bag, pi, origin, sx, sy);
-		});
+		apply.applyToSelection(
+			[&](ecs::CPaths& bag, int pi) { return pathEdit::scalePath(bag, pi, origin, sx, sy); });
 		setScaleCursor(h);
 		return true;
 	}
