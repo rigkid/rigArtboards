@@ -114,8 +114,8 @@ std::vector<ecs::PathSelRef> marqueeHitsBag(const ecs::CPaths& bag, int layerInd
 }
 
 std::vector<ecs::PathSelRef> marqueeHits(MEcs& ecs, const std::vector<entt::entity>& layers,
-										 const glm::vec2& a, const glm::vec2& b,
-										 float flattenTolMm, bool includeTravels) {
+										 const glm::vec2& a, const glm::vec2& b, float flattenTolMm,
+										 bool includeTravels) {
 	std::vector<ecs::PathSelRef> hits;
 	for (int li = 0; li < static_cast<int>(layers.size()); ++li) {
 		const entt::entity e = layers[static_cast<size_t>(li)];
@@ -159,10 +159,9 @@ PenClickAction penClickAction(const ecs::CPaths& bag, int pathIndex, const glm::
 							  float closeTolMm) {
 	glm::vec2 startPt{};
 	const bool haveStart = pathIndex >= 0 && pathEdit::pathStartPoint(bag, pathIndex, startPt);
-	const bool nearStart =
-		haveStart && glm::length(mouseMm - startPt) <= closeTolMm && pathIndex >= 0 &&
-		pathIndex < static_cast<int>(bag.paths.size()) &&
-		bag.paths[static_cast<size_t>(pathIndex)].commands.size() >= 2;
+	const bool nearStart = haveStart && glm::length(mouseMm - startPt) <= closeTolMm &&
+						   pathIndex >= 0 && pathIndex < static_cast<int>(bag.paths.size()) &&
+						   bag.paths[static_cast<size_t>(pathIndex)].commands.size() >= 2;
 	if (nearStart) {
 		return PenClickAction::Close;
 	}
@@ -205,8 +204,7 @@ bool penCommitPreview(ecs::CPaths& bag, int pathIndex, const glm::vec2& down,
 	const bool isClick = glm::length(drag) < clickTolMm;
 
 	// First point: drag only seeds the outgoing handle for the next segment.
-	const bool onlyMove =
-		cmds.size() == 1 && cmds.front().type == ecs::CPath::Cmd::MoveTo;
+	const bool onlyMove = cmds.size() == 1 && cmds.front().type == ecs::CPath::Cmd::MoveTo;
 	if (onlyMove) {
 		if (isClick) {
 			ioHasOutgoing = false;
@@ -223,8 +221,7 @@ bool penCommitPreview(ecs::CPaths& bag, int pathIndex, const glm::vec2& down,
 		return false;
 	}
 
-	const glm::vec2 c1 =
-		ioHasOutgoing ? ioOutgoing : (p0 + (down - p0) * (1.f / 3.f));
+	const glm::vec2 c1 = ioHasOutgoing ? ioOutgoing : (p0 + (down - p0) * (1.f / 3.f));
 
 	if (isClick) {
 		if (!pathEdit::appendLineTo(bag, pathIndex, down)) {
@@ -244,6 +241,121 @@ bool penCommitPreview(ecs::CPaths& bag, int pathIndex, const glm::vec2& down,
 	ioOutgoing = down + drag;
 	outKind = PenCommitKind::Cubic;
 	return true;
+}
+
+void applyToolPaint(ecs::CPaths& bag, int pathIndex, const ecs::CToolPaint& paint) {
+	if (!pathEdit::ensurePathPaintSlots(bag, pathIndex)) {
+		return;
+	}
+	pathEdit::setPathFilled(bag, pathIndex, paint.filled);
+	if (paint.filled) {
+		pathEdit::setPathFillColor(bag, pathIndex, paint.fill);
+		pathEdit::setPathFilled(bag, pathIndex, true);
+	} else {
+		pathEdit::setPathFilled(bag, pathIndex, false);
+		const size_t i = static_cast<size_t>(pathIndex);
+		if (i < bag.pathColors.size()) {
+			bag.pathColors[i] = paint.fill;
+		}
+	}
+	pathEdit::setPathStroked(bag, pathIndex, paint.stroked);
+	if (paint.stroked) {
+		pathEdit::setPathStrokeColor(bag, pathIndex, paint.stroke);
+		pathEdit::setPathStrokeWidth(bag, pathIndex, paint.strokeWidthMm);
+		pathEdit::setPathStroked(bag, pathIndex, true);
+	} else {
+		pathEdit::setPathStroked(bag, pathIndex, false);
+		const size_t i = static_cast<size_t>(pathIndex);
+		if (i < bag.pathStrokeColors.size()) {
+			bag.pathStrokeColors[i] = paint.stroke;
+		}
+		pathEdit::setPathStrokeWidth(bag, pathIndex, paint.strokeWidthMm);
+	}
+}
+
+ecs::CPath makeRectPath(const glm::vec2& mn, const glm::vec2& mx) {
+	using Cmd = ecs::CPath::Cmd;
+	ecs::CPath path;
+	path.commands.push_back({Cmd::MoveTo, mn, {}, {}});
+	path.commands.push_back({Cmd::LineTo, {mx.x, mn.y}, {}, {}});
+	path.commands.push_back({Cmd::LineTo, mx, {}, {}});
+	path.commands.push_back({Cmd::LineTo, {mn.x, mx.y}, {}, {}});
+	path.commands.push_back({Cmd::Close, {}, {}, {}});
+	return path;
+}
+
+ecs::CPath makeEllipsePath(const glm::vec2& mn, const glm::vec2& mx) {
+	using Cmd = ecs::CPath::Cmd;
+	const glm::vec2 c = (mn + mx) * 0.5f;
+	const float rx = (mx.x - mn.x) * 0.5f;
+	const float ry = (mx.y - mn.y) * 0.5f;
+	constexpr float k = 0.5522847498f; // cubic kappa
+	const float kx = rx * k;
+	const float ky = ry * k;
+	ecs::CPath path;
+	path.commands.push_back({Cmd::MoveTo, {c.x + rx, c.y}, {}, {}});
+	path.commands.push_back(
+		{Cmd::CubicTo, {c.x, c.y + ry}, {c.x + rx, c.y + ky}, {c.x + kx, c.y + ry}});
+	path.commands.push_back(
+		{Cmd::CubicTo, {c.x - rx, c.y}, {c.x - kx, c.y + ry}, {c.x - rx, c.y + ky}});
+	path.commands.push_back(
+		{Cmd::CubicTo, {c.x, c.y - ry}, {c.x - rx, c.y - ky}, {c.x - kx, c.y - ry}});
+	path.commands.push_back(
+		{Cmd::CubicTo, {c.x + rx, c.y}, {c.x + kx, c.y - ry}, {c.x + rx, c.y - ky}});
+	path.commands.push_back({Cmd::Close, {}, {}, {}});
+	return path;
+}
+
+ecs::CPath makeSpiralPath(const glm::vec2& mn, const glm::vec2& mx, float turns, float inner,
+						  float growth, bool logarithmic) {
+	const glm::vec2 c = (mn + mx) * 0.5f;
+	const float rx = std::max(0.f, (mx.x - mn.x) * 0.5f);
+	const float ry = std::max(0.f, (mx.y - mn.y) * 0.5f);
+	turns = std::clamp(turns, 0.5f, 20.f);
+	inner = std::clamp(inner, 0.f, 0.85f);
+	growth = std::clamp(growth, 1.05f, 3.f);
+	constexpr float kTau = 6.28318530718f;
+	constexpr float kStep = 1.0471975512f; // 60 degrees per cubic
+	const float thetaMax = turns * kTau;
+	const int n = std::max(1, static_cast<int>(std::ceil(thetaMax / kStep - 1e-4f)));
+
+	auto radius = [&](float theta) {
+		if (!logarithmic) {
+			return inner + (1.f - inner) * (theta / thetaMax);
+		}
+		return std::pow(growth, (theta - thetaMax) / kTau);
+	};
+	auto drdTheta = [&](float theta) {
+		if (!logarithmic) {
+			return (1.f - inner) / thetaMax;
+		}
+		return (std::log(growth) / kTau) * radius(theta);
+	};
+	auto pos = [&](float theta) {
+		const float r = radius(theta);
+		return glm::vec2{c.x + std::cos(theta) * rx * r, c.y + std::sin(theta) * ry * r};
+	};
+	auto deriv = [&](float theta) {
+		const float r = radius(theta);
+		const float dr = drdTheta(theta);
+		const float co = std::cos(theta);
+		const float si = std::sin(theta);
+		return glm::vec2{rx * (dr * co - r * si), ry * (dr * si + r * co)};
+	};
+
+	ecs::CPath path;
+	using Cmd = ecs::CPath::Cmd;
+	path.commands.push_back({Cmd::MoveTo, pos(0.f), {}, {}});
+	for (int i = 0; i < n; ++i) {
+		const float a0 = kStep * static_cast<float>(i);
+		const float a1 = std::min(thetaMax, a0 + kStep);
+		const float dTheta = a1 - a0;
+		const glm::vec2 p0 = pos(a0);
+		const glm::vec2 p1 = pos(a1);
+		path.commands.push_back(
+			{Cmd::CubicTo, p1, p0 + deriv(a0) * (dTheta / 3.f), p1 - deriv(a1) * (dTheta / 3.f)});
+	}
+	return path;
 }
 
 } // namespace artboards

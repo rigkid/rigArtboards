@@ -7,8 +7,8 @@
  * curve-aware `segmentHitT`.
  */
 
-#include <cstdint>
 #include <glm/glm.hpp>
+#include <cstdint>
 #include <vector>
 
 #include "ecs/MEcs.h"
@@ -16,6 +16,7 @@
 #include "CPathEditSelection.h"
 #include "CPaths.h"
 #include "CPlotLayer.h"
+#include "CToolPaint.h"
 #include "PathBounds.h"
 #include "PathEditOps.h"
 
@@ -81,6 +82,28 @@ bool penCommitPreview(ecs::CPaths& bag, int pathIndex, const glm::vec2& down,
 
 /** @brief Last non-Close endpoint of an open path. */
 bool pathEndPoint(const ecs::CPaths& bag, int pathIndex, glm::vec2& out);
+
+/**
+ * @brief Stamp the working Fill / Stroke onto a freshly created path.
+ * @details Mirrors `CToolPaint` into the per-path paint slots (colors are
+ * written even when a slot is off, so toggling Fill later keeps the hue).
+ */
+void applyToolPaint(ecs::CPaths& bag, int pathIndex, const ecs::CToolPaint& paint);
+
+/** @brief Closed rectangle path inscribed in the @p mn to @p mx drag box. */
+ecs::CPath makeRectPath(const glm::vec2& mn, const glm::vec2& mx);
+
+/** @brief Closed ellipse path inscribed in the @p mn to @p mx drag box (cubic kappa). */
+ecs::CPath makeEllipsePath(const glm::vec2& mn, const glm::vec2& mx);
+
+/**
+ * @brief Open spiral inscribed in the @p mn to @p mx drag box, as cubic curves.
+ * @details Archimedean: radius grows linearly, so the gaps stay even.
+ * Logarithmic: each turn multiplies the radius by @p growth. Handles match
+ * the spiral tangent, so the path stays a curve rather than a polyline.
+ */
+ecs::CPath makeSpiralPath(const glm::vec2& mn, const glm::vec2& mx, float turns, float inner,
+						  float growth, bool logarithmic);
 
 } // namespace artboards
 } // namespace rigkit

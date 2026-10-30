@@ -6,6 +6,7 @@
 
 #include "ecs/MEcs.h"
 #include "CPath.h"
+#include "CPathEditSelection.h"
 #include "SurfaceSeam.h"
 
 namespace rigkit {
@@ -68,6 +69,18 @@ void drawPenRubberBand(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& f
 
 /** @brief Semi-transparent marquee rectangle in mm space. */
 void drawMarquee(ImDrawList* dl, const SurfaceMap& map, const glm::vec2& aMm, const glm::vec2& bMm);
+
+/**
+ * @brief OS cursor + icon badge for the active path-edit tool.
+ * @details Call once per frame while the pointer is over the canvas. Sets the
+ * ImGui mouse cursor (I-beam for Text, arrow otherwise - this ImGui has no
+ * crosshair, so Pen / shape tools also get drawn crosshair hairs) and draws
+ * the tool's IconFont glyph beside the pointer, Illustrator-style, so the
+ * armed tool reads at the point of work. @p brushDiameterMm / @p pxPerMm
+ * only size the Brush dab ring; pass 0 to skip it.
+ */
+void applyToolCursor(ecs::PathEditTool tool, ImDrawList* dl, const ImVec2& mousePos,
+					 float brushDiameterMm = 0.f, float pxPerMm = 0.f);
 
 /**
  * @brief Draw CGuide lines for @p docId (or all if docId == 0 and no filter needed).

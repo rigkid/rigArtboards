@@ -8,6 +8,13 @@
 #include <algorithm>
 #include <cmath>
 
+#if __has_include("IconsFontAwesome5.h")
+#include "IconsFontAwesome5.h"
+#define TOOL_GLYPH(x) x
+#else
+#define TOOL_GLYPH(x) ""
+#endif
+
 namespace rigkit {
 namespace artboards {
 namespace {
@@ -55,6 +62,104 @@ bool showHandlesForNode(const PathChromeStyle& style, int selectedCommand, int n
 }
 
 } // namespace
+
+void applyToolCursor(ecs::PathEditTool tool, ImDrawList* dl, const ImVec2& mousePos,
+					 float brushDiameterMm, float pxPerMm) {
+	using Tool = ecs::PathEditTool;
+	const char* glyph = "";
+	const char* suffix = "";
+	bool crosshair = false;
+	switch (tool) {
+	case Tool::ObjectSelect:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_MOUSE_POINTER);
+		break;
+	case Tool::DirectSelect:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_MOUSE_POINTER);
+		break;
+	case Tool::PenDraw:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_PEN);
+		crosshair = true;
+		break;
+	case Tool::PenAdd:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_PEN);
+		suffix = "+";
+		crosshair = true;
+		break;
+	case Tool::PenRemove:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_PEN);
+		suffix = "-";
+		crosshair = true;
+		break;
+	case Tool::Text:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
+		glyph = TOOL_GLYPH(ICON_FA_FONT);
+		break;
+	case Tool::Rect:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_SQUARE);
+		crosshair = true;
+		break;
+	case Tool::Ellipse:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_CIRCLE);
+		crosshair = true;
+		break;
+	case Tool::Spiral:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_SYNC);
+		crosshair = true;
+		break;
+	case Tool::Brush:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_PAINT_BRUSH);
+		break;
+	case Tool::Wand:
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+		glyph = TOOL_GLYPH(ICON_FA_MAGIC);
+		break;
+	}
+	if (!dl) {
+		return;
+	}
+	if (crosshair) {
+		const float arm = uiPx(7.f);
+		const float gap = uiPx(2.5f);
+		const ImU32 col = IM_COL32(40, 44, 52, 200);
+		dl->AddLine(ImVec2(mousePos.x - arm, mousePos.y), ImVec2(mousePos.x - gap, mousePos.y), col,
+					1.f);
+		dl->AddLine(ImVec2(mousePos.x + gap, mousePos.y), ImVec2(mousePos.x + arm, mousePos.y), col,
+					1.f);
+		dl->AddLine(ImVec2(mousePos.x, mousePos.y - arm), ImVec2(mousePos.x, mousePos.y - gap), col,
+					1.f);
+		dl->AddLine(ImVec2(mousePos.x, mousePos.y + gap), ImVec2(mousePos.x, mousePos.y + arm), col,
+					1.f);
+	}
+	if (tool == Tool::Brush && brushDiameterMm > 0.f && pxPerMm > 0.f) {
+		dl->AddCircle(mousePos, std::max(1.f, brushDiameterMm * 0.5f * pxPerMm),
+					  IM_COL32(64, 200, 255, 220), 0, 1.5f);
+	}
+	if (glyph[0] == '\0') {
+		return;
+	}
+	// Direct Selection is Illustrator's hollow arrow: same glyph, light fill
+	// on dark outline, vs the solid dark badge for Selection.
+	const bool hollow = tool == Tool::DirectSelect;
+	const ImVec2 at(mousePos.x + uiPx(14.f), mousePos.y + uiPx(14.f));
+	const ImU32 shadow = IM_COL32(20, 22, 28, 220);
+	const ImU32 ink = hollow ? IM_COL32(245, 245, 250, 255) : IM_COL32(30, 32, 40, 255);
+	dl->AddText(ImVec2(at.x + 1.f, at.y + 1.f), shadow, glyph);
+	dl->AddText(at, ink, glyph);
+	if (suffix[0] != '\0') {
+		const float w = ImGui::CalcTextSize(glyph).x;
+		dl->AddText(ImVec2(at.x + w + uiPx(2.f) + 1.f, at.y + 1.f), shadow, suffix);
+		dl->AddText(ImVec2(at.x + w + uiPx(2.f), at.y), ink, suffix);
+	}
+}
 
 float pathChromeHitMm(const SurfaceMap& map, const PathChromeStyle& style) {
 	const float scale =
