@@ -9,7 +9,7 @@
 
 namespace rigkit {
 
-AlignPanel::AlignPanel(const std::string& title) : IWindow(title) {
+AlignPanel::AlignPanel(const std::string& title) : ImGuiPanel(title) {
 	setCategory("Artboards");
 }
 

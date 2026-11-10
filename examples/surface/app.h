@@ -4,7 +4,7 @@
 #include "packs/rigArtboards/src/SurfaceGizmo.h"
 #include "packs/rigArtboards/src/SurfaceNumeric.h"
 #include "packs/rigArtboards/src/SurfaceView.h"
-#include "packs/rigImGui/src/IWindow.h"
+#include "packs/rigImGui/src/ImGuiPanel.h"
 #include "packs/rigPlotComponent/src/CArtboard.h"
 #include "packs/rigPlotComponent/src/CBedView.h"
 #include "packs/rigPlotComponent/src/CPathEditSelection.h"
@@ -12,7 +12,7 @@
 
 class SurfaceHeroApp : public rigkit::IApp {
   public:
-	class SurfacePanel : public rigkit::IWindow {
+	class SurfacePanel : public rigkit::ImGuiPanel {
 	  public:
 		SurfacePanel(rigkit::ecs::CBedView* view, rigkit::ecs::CArtboard* board,
 					 rigkit::ecs::CPaths* bag, rigkit::ecs::CPathEditSelection* sel);

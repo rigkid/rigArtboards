@@ -37,7 +37,7 @@ int copyPathEntry(const ecs::CPaths& src, size_t i, ecs::CPaths& dst) {
 
 } // namespace
 
-PathfinderPanel::PathfinderPanel(const std::string& title) : IWindow(title) {
+PathfinderPanel::PathfinderPanel(const std::string& title) : ImGuiPanel(title) {
 	setCategory("Artboards");
 }
 

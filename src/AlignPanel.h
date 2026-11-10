@@ -2,7 +2,7 @@
 
 #include <functional>
 #include <string>
-#include "IWindow.h"
+#include "ImGuiPanel.h"
 
 namespace rigkit {
 
@@ -11,7 +11,7 @@ class PlotDoc;
 /**
  * @brief Shared Align & Distribute panel (selection or artboard target).
  */
-class AlignPanel : public IWindow {
+class AlignPanel : public ImGuiPanel {
   public:
 	explicit AlignPanel(const std::string& title = "Align###artboards.align");
 

@@ -35,7 +35,7 @@ bool pointInBounds(const rigkit::artboards::SelBounds& b, const glm::vec2& mm) {
 SurfaceHeroApp::SurfacePanel::SurfacePanel(rigkit::ecs::CBedView* view,
 										   rigkit::ecs::CArtboard* board, rigkit::ecs::CPaths* bag,
 										   rigkit::ecs::CPathEditSelection* sel)
-	: IWindow("Surface", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar |
+	: ImGuiPanel("Surface", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar |
 							 ImGuiWindowFlags_NoScrollWithMouse),
 	  m_view(view), m_board(board), m_bag(bag), m_sel(sel) {}
 

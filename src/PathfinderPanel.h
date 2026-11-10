@@ -2,7 +2,7 @@
 
 #include <functional>
 #include <string>
-#include "IWindow.h"
+#include "ImGuiPanel.h"
 
 namespace rigkit {
 
@@ -13,7 +13,7 @@ class PlotDoc;
  * @details Shells wire PlotDoc + an optional undo mutate hook. Multi-layer
  * selections copy foreign paths onto the primary layer before the boolean.
  */
-class PathfinderPanel : public IWindow {
+class PathfinderPanel : public ImGuiPanel {
   public:
 	explicit PathfinderPanel(const std::string& title = "Pathfinder###artboards.pathfinder");
 

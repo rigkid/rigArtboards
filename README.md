@@ -22,8 +22,8 @@ Shared editing surface for RigKit editors that work in millimetre space.
 | `SurfaceGizmo.h` | 8-handle + rotate-stem selection gizmo |
 | `SurfaceNumeric.h` | X/Y/W/H/rotate fields for the selection |
 | `SelectionBounds.h` | Union bbox across layers |
-| `PathfinderPanel.h` | Shared Pathfinder Shape Modes + Pathfinders (`IWindow`) |
-| `AlignPanel.h` | Shared Align & Distribute (`IWindow`, Selection / Artboard) |
+| `PathfinderPanel.h` | Shared Pathfinder Shape Modes + Pathfinders (`ImGuiPanel`) |
+| `AlignPanel.h` | Shared Align & Distribute (`ImGuiPanel`, Selection / Artboard) |
 
 Shells keep content drawing and undo APIs; the gizmo emits transforms through the apply hook. Pathfinder / Align take a mutate hook for undo.
 
