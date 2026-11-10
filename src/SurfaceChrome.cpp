@@ -1,6 +1,6 @@
 #include "SurfaceChrome.h"
 
-#include "ecs/components/CGuide.h"
+#include "CGuide.h"
 #include "CPlotDoc.h"
 #include "PathEditOps.h"
 #include "UiDpi.h"
